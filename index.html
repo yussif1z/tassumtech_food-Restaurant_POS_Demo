@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tassum POS — Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --ink:#1F3A2E;
+    --ink-2:#16291F;
+    --paper:#F7F3E9;
+    --paper-2:#EFE8D6;
+    --amber:#D9A441;
+    --amber-2:#B9852B;
+    --brick:#B33A3A;
+    --line:#D8CFB6;
+    --text:#242018;
+    --text-soft:#5B5648;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--paper-2);color:var(--text);}
+  h1,h2,h3{font-family:'Cambria','Georgia',serif;letter-spacing:.2px;margin:0 0 .4em 0;}
+  button{cursor:pointer;font-family:inherit;}
+  input,select{font-family:inherit;}
+
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:
+    radial-gradient(circle at 20% 20%, #2A4A3A 0%, var(--ink) 60%);}
+  .loginCard{background:var(--paper);width:340px;padding:36px 32px;border-radius:6px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center;}
+  .loginLogo{width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;
+    background:var(--amber);}
+  .ph{display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:bold;background:var(--amber);}
+  .loginCard h1{font-size:22px;color:var(--ink);}
+  .loginCard p.tag{color:var(--text-soft);font-size:12.5px;margin-bottom:22px;}
+  .field{text-align:left;margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:4px;}
+  .field input, .field select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:4px;
+    background:#fff;font-size:14px;}
+  .btn{border:none;border-radius:4px;padding:10px 16px;font-size:14px;font-weight:600;}
+  .btn-primary{background:var(--amber);color:#2A1E08;width:100%;}
+  .btn-primary:hover{background:var(--amber-2);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+  .btn-danger{background:var(--brick);color:#fff;}
+  .loginErr{color:var(--brick);font-size:12.5px;margin:-6px 0 12px;min-height:14px;}
+  .loginHint{margin-top:18px;font-size:11px;color:var(--text-soft);border-top:1px dashed var(--line);padding-top:12px;}
+
+  #app{display:none;min-height:100vh;grid-template-columns:210px 1fr;}
+  #app.show{display:grid;}
+  #topbar{grid-column:1/3;background:var(--ink);color:#EFE8D6;display:flex;align-items:center;
+    justify-content:space-between;padding:0 20px;height:58px;}
+  #topbar .brand{display:flex;align-items:center;gap:10px;}
+  #topbar .brand img, #topbar .brand .ph{width:32px;height:32px;border-radius:50%;object-fit:cover;}
+  #topbar .brand b{font-family:Cambria,Georgia,serif;font-size:16px;}
+  #topbar .who{display:flex;align-items:center;gap:12px;font-size:13px;}
+  #topbar .who .role{background:rgba(255,255,255,.12);padding:2px 8px;border-radius:10px;font-size:11px;letter-spacing:.3px;}
+  #topbar button{background:var(--brick);color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;}
+
+  #sidebar{background:var(--ink-2);padding:16px 0;}
+  #sidebar button{display:block;width:100%;text-align:left;background:none;border:none;color:#CFCABB;
+    padding:11px 20px;font-size:13.5px;border-left:3px solid transparent;}
+  #sidebar button:hover{background:rgba(255,255,255,.05);}
+  #sidebar button.active{color:#fff;border-left-color:var(--amber);background:rgba(255,255,255,.07);}
+
+  #main{padding:26px 30px;overflow:auto;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px;margin-bottom:18px;}
+  .panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;color:var(--text-soft);font-weight:600;font-size:11.5px;text-transform:uppercase;
+    letter-spacing:.4px;border-bottom:1px solid var(--line);padding:8px 6px;}
+  td{padding:9px 6px;border-bottom:1px solid var(--line);}
+  .pill{padding:2px 9px;border-radius:10px;font-size:11px;background:var(--paper-2);border:1px solid var(--line);}
+  .pill.admin{background:#EADFC2;color:#6B4E12;}
+  .pill.cashier{background:#DCE8DC;color:#2A4A2A;}
+  .miniBtn{border:1px solid var(--line);background:#fff;padding:5px 10px;border-radius:4px;font-size:12px;margin-right:6px;}
+  .miniBtn.danger{border-color:var(--brick);color:var(--brick);}
+
+  #posGrid{display:grid;grid-template-columns:1fr 340px;gap:18px;}
+  #menuList{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .itemCard{background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px;text-align:left;position:relative;}
+  .itemCard b{display:block;font-size:13.5px;margin-bottom:4px;}
+  .itemCard span{color:var(--amber-2);font-weight:700;font-size:13px;}
+  .itemCard .addonTag{position:absolute;top:8px;right:8px;font-size:9.5px;background:var(--amber);color:#2A1E08;
+    padding:1px 6px;border-radius:8px;}
+  .catFilter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .catFilter button{border:1px solid var(--line);background:#fff;padding:5px 12px;border-radius:14px;font-size:12.5px;}
+  .catFilter button.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  #cartPanel{background:var(--paper);border:1px dashed var(--amber-2);border-radius:6px;padding:16px;
+    display:flex;flex-direction:column;height:fit-content;}
+  .cartRow{display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;padding:7px 0;
+    border-bottom:1px dashed var(--line);}
+  .cartRow .lineMain{display:flex;flex-direction:column;}
+  .cartRow .addonNote{font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .cartRow .qtyBtns button{width:22px;height:22px;border:1px solid var(--line);background:#fff;border-radius:3px;}
+  .cartTotals{margin-top:10px;padding-top:10px;border-top:2px solid var(--ink);font-size:14px;}
+  .cartTotals .grand{font-weight:700;font-size:17px;color:var(--ink);}
+
+  #receiptOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50;}
+  #receiptOverlay.show{display:flex;}
+  #receipt{width:300px;background:#fff;padding:20px;font-family:'Courier New',monospace;font-size:12.5px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);max-height:88vh;overflow:auto;}
+  #receipt .rHead{text-align:center;margin-bottom:10px;}
+  #receipt .rHead img{width:44px;height:44px;border-radius:50%;object-fit:cover;margin-bottom:4px;}
+  #receipt hr{border:none;border-top:1px dashed #999;margin:8px 0;}
+  #receipt .rRow{display:flex;justify-content:space-between;}
+  #receipt .rSub{font-size:11px;color:#555;padding-left:8px;}
+  #receiptActions{display:flex;gap:8px;margin-top:14px;}
+
+  .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:60;}
+  .modalOverlay.show{display:flex;}
+  .modalBox{background:var(--paper);width:360px;padding:22px;border-radius:6px;max-height:88vh;overflow:auto;}
+  .modalBox .field{margin-bottom:12px;}
+  .modalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+  .addonRow{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+  .addonRow input[type=text]{flex:2;}
+  .addonRow input[type=number]{flex:1;}
+  .addonRow button{border:1px solid var(--brick);color:var(--brick);background:#fff;border-radius:4px;padding:6px 8px;font-size:12px;}
+
+  .addonPick{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .addonPick label{display:flex;gap:8px;align-items:center;}
+
+  .note{font-size:12px;color:var(--text-soft);background:var(--paper-2);border-left:3px solid var(--amber-2);
+    padding:8px 12px;border-radius:3px;margin-bottom:16px;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #receipt, #receipt *{visibility:visible;}
+    #receipt{position:absolute;top:0;left:0;box-shadow:none;}
+    #receiptActions{display:none;}
+    #shiftModal.show .modalBox, #shiftModal.show .modalBox *{visibility:visible;}
+    #shiftModal.show .modalBox{position:absolute;top:0;left:0;box-shadow:none;width:320px;}
+    #shiftModal.show .modalActions, #shiftModal.show .no-print{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="loginCard">
+    <div id="loginLogoWrap"></div>
+    <h1 id="loginTitle">Restaurant POS</h1>
+    <p class="tag">Point of Sale</p>
+    <div class="field"><label>Username</label><input id="loginUser" placeholder="e.g. admin"></div>
+    <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"></div>
+    <div class="loginErr" id="loginErr"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Log In</button>
+    <div class="loginHint">Powered by <b>Tassum Tech</b><br>Contact us for more projects: 0240 355 425 · tassumtech@gmail.com<br>
+      <span style="font-size:10px">© 2026 Tassum Tech. All rights reserved.</span></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <div class="brand" id="topbarBrand"></div>
+    <div class="who">
+      <span id="whoName"></span>
+      <span class="role" id="whoRole"></span>
+      <button onclick="requestLogout()">Log Out</button>
+    </div>
+  </div>
+
+  <div id="sidebar"></div>
+
+  <div id="main">
+
+    <div class="view" id="view-pos">
+      <h2>New Sale</h2>
+      <div id="posGrid">
+        <div>
+          <input id="posSearch" placeholder="Search items…" style="width:100%;padding:9px 10px;border:1px solid var(--line);
+            border-radius:4px;background:#fff;font-size:14px;margin-bottom:12px" oninput="renderMenuGrid()">
+          <div class="catFilter" id="catFilter"></div>
+          <div id="menuList"></div>
+        </div>
+        <div id="cartPanel">
+          <h3>Current Order</h3>
+          <div id="cartItems"></div>
+          <div class="cartTotals">
+            <div class="cartRow"><span>Subtotal</span><span id="sumSub">GH₵0.00</span></div>
+            <div class="cartRow" id="taxRow"><span>Tax (<span id="taxPctLabel">0</span>%)</span><span id="sumTax">GH₵0.00</span></div>
+            <div class="cartRow grand"><span>Total</span><span id="sumTotal">GH₵0.00</span></div>
+          </div>
+          <div style="margin-top:12px">
+            <label style="display:block;font-size:12px;color:var(--text-soft);margin-bottom:4px">Payment Method</label>
+            <div style="display:flex;gap:8px">
+              <button type="button" id="payCash" onclick="setPayMethod('Cash')"
+                style="flex:1;border:1px solid var(--line);background:#fff;padding:8px;border-radius:4px;font-size:13px">Cash</button>
+              <button type="button" id="payMomo" onclick="setPayMethod('MoMo')"
+                style="flex:1;border:1px solid var(--line);background:#fff;padding:8px;border-radius:4px;font-size:13px">Mobile Money</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:12px" onclick="checkout()">Charge & Print Receipt</button>
+          <button class="btn btn-ghost" style="margin-top:8px" onclick="clearCart()">Clear Order</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-dashboard">
+      <div class="note">These figures are real and build up day by day as sales are rung up on this machine.</div>
+      <div style="display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">Today's Sales</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink)" id="dashToday">GH₵0.00</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">Today's Orders</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink)" id="dashOrders">0</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">Avg. Order</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink)" id="dashAvg">GH₵0.00</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">Cash Today</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink)" id="dashCash">GH₵0.00</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">MoMo Today</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink)" id="dashMomo">GH₵0.00</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:130px;text-align:center">
+          <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">Refunds Today</div>
+          <div style="font-size:26px;font-weight:700;color:var(--brick)" id="dashRefunds">0</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panelHead">
+          <h2 id="dashChartTitle">Last 7 Days</h2>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="miniBtn" id="rangeWeek" onclick="setDashRange('week')">7 Days</button>
+            <button type="button" class="miniBtn" id="rangeYear" onclick="setDashRange('year')">12 Months</button>
+          </div>
+        </div>
+        <div id="dashChart" style="display:flex;align-items:flex-end;gap:10px;height:180px;padding-top:10px"></div>
+      </div>
+      <div class="panel" style="text-align:center;margin-top:16px">
+        <div style="font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px">All-Time Total Sales</div>
+        <div style="font-size:24px;font-weight:700;color:var(--ink)" id="dashAllTime">GH₵0.00</div>
+        <div style="font-size:11px;color:var(--text-soft);margin-top:4px" id="dashAllTimeOrders"></div>
+      </div>
+    </div>
+
+    <div class="view" id="view-orders">
+      <div class="panel">
+        <div class="panelHead"><h2>Orders & Refunds</h2></div>
+        <div class="note">Refund whole items when something's finished or the order was rung up wrong — the amount is deducted from sales totals automatically.</div>
+        <table>
+          <thead><tr><th>Date/Time</th><th>Cashier</th><th>Payment</th><th>Items</th><th>Total</th><th>Refunded</th><th>Net</th><th></th></tr></thead>
+          <tbody id="ordersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-categories">
+      <div class="panel">
+        <div class="panelHead"><h2>Categories</h2>
+          <button class="btn btn-primary" onclick="openCatModal()">+ Add Category</button>
+        </div>
+        <div class="note">Create categories here first. When you add a menu item, you'll pick from these — items can't create new categories on their own.</div>
+        <input id="catSearch" placeholder="Search categories…" style="width:100%;padding:9px 10px;border:1px solid var(--line);
+          border-radius:4px;background:#fff;font-size:14px;margin-bottom:12px" oninput="renderCatTable()">
+        <table><thead><tr><th>Category</th><th># Items</th><th></th></tr></thead>
+        <tbody id="catTable"></tbody></table>
+      </div>
+    </div>
+
+    <div class="view" id="view-menu">
+      <div class="panel">
+        <div class="panelHead"><h2>Menu Items</h2>
+          <button class="btn btn-primary" onclick="openMenuModal()">+ Add Item</button>
+        </div>
+        <input id="menuSearch" placeholder="Search menu items…" style="width:100%;padding:9px 10px;border:1px solid var(--line);
+          border-radius:4px;background:#fff;font-size:14px;margin-bottom:12px" oninput="renderMenuTable()">
+        <table>
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Add-ons</th><th></th></tr></thead>
+          <tbody id="menuTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-users">
+      <div class="panel">
+        <div class="panelHead"><h2>Staff Accounts</h2>
+          <button class="btn btn-primary" onclick="openUserModal()">+ Create Account</button>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view" id="view-settings">
+      <div class="panel" style="max-width:420px">
+        <h2>Restaurant Branding</h2>
+        <div class="note">This logo and name appear on the login screen, the top bar, and every printed receipt.</div>
+        <div class="field"><label>Restaurant Name</label><input id="setName"></div>
+        <div class="field"><label>Logo</label><input type="file" id="setLogoFile" accept="image/*"></div>
+        <div class="field"><label>Tax / Service Charge (%) — optional, set 0 if you don't charge one</label><input id="setTax" type="number" min="0" step="0.5"></div>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+      <div class="panel" style="max-width:420px;text-align:center;font-size:12px;color:var(--text-soft)">
+        This software was built by <b>Tassum Tech</b><br>
+        0240 355 425 · tassumtech@gmail.com · www.tassumtech.com<br>
+        Get in touch for more custom software projects.
+      </div>
+    </div>
+
+    <div class="view" id="view-account">
+      <div class="panel" style="max-width:380px">
+        <h2>My Account</h2>
+        <div class="field"><label>Full Name</label><input id="accName"></div>
+        <div class="field"><label>New Password</label><input id="accPass" type="password" placeholder="Leave blank to keep current"></div>
+        <button class="btn btn-primary" onclick="saveMyAccount()">Save Changes</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modalOverlay" id="receiptOverlay">
+  <div id="receipt">
+    <div class="rHead">
+      <div id="receiptLogoWrap"></div>
+      <b id="rName">Restaurant</b><br><span style="font-size:11px">Sales Receipt</span>
+    </div>
+    <hr>
+    <div id="receiptLines"></div>
+    <hr>
+    <div class="rRow"><span>Subtotal</span><span id="rSub"></span></div>
+    <div class="rRow" id="rTaxRow"><span>Tax</span><span id="rTax"></span></div>
+    <div class="rRow" style="font-weight:bold"><span>TOTAL</span><span id="rTotal"></span></div>
+    <hr>
+    <div style="font-size:11px">Served by: <span id="rCashier"></span><br>Date: <span id="rDate"></span><br>Payment: <span id="rPayMethod"></span></div>
+    <div style="text-align:center;margin-top:10px;font-size:11px">Thank you — come again!</div>
+    <div id="receiptActions">
+      <button class="btn btn-primary" style="flex:1" onclick="window.print()">Print</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeReceipt()">New Sale</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="shiftModal">
+  <div class="modalBox" style="width:380px">
+    <h3>End of Shift — Sales Summary</h3>
+    <div class="note">Review your shift before signing out. Print or save a copy for your own backup, then confirm log out so the next person can log in.</div>
+    <div class="rRow"><span>Cashier</span><span id="shiftCashier"></span></div>
+    <div class="rRow"><span>Shift start</span><span id="shiftStart"></span></div>
+    <div class="rRow"><span>Shift end</span><span id="shiftEnd"></span></div>
+    <hr>
+    <div id="shiftLines" style="max-height:180px;overflow:auto;margin:8px 0"></div>
+    <hr>
+    <div class="rRow"><span>Orders</span><span id="shiftOrders"></span></div>
+    <div class="rRow" style="font-weight:bold"><span>Total Sales</span><span id="shiftTotal"></span></div>
+    <div class="no-print" style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-ghost" style="flex:1" onclick="window.print()">Print</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="saveShiftFile()">Save Backup File</button>
+    </div>
+    <div class="no-print" style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-ghost" style="flex:1;border-color:var(--brick);color:var(--brick)" onclick="closeModal('shiftModal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmShiftLogout()">Confirm Log Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="refundModal">
+  <div class="modalBox" style="width:380px">
+    <h3>Refund Items</h3>
+    <div class="note" id="refundOrderInfo" style="margin-bottom:10px"></div>
+    <div id="refundLines" style="max-height:220px;overflow:auto"></div>
+    <div class="field" style="margin-top:12px">
+      <label>Reason for refund</label>
+      <input id="refundReason" placeholder="e.g. Item out of stock, wrong order">
+    </div>
+    <div class="rRow" style="font-weight:bold;margin-top:8px"><span>Refund Total</span><span id="refundPreviewTotal">GH₵0.00</span></div>
+    <div class="modalActions">
+      <button class="btn btn-ghost" onclick="closeModal('refundModal')">Cancel</button>
+      <button class="btn btn-primary" style="width:auto" onclick="confirmRefund()">Confirm Refund</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="userModal">
+  <div class="modalBox">
+    <h3 id="userModalTitle">Create Account</h3>
+    <input type="hidden" id="userEditId">
+    <div class="field"><label>Full Name</label><input id="uName"></div>
+    <div class="field"><label>Username</label><input id="uUsername"></div>
+    <div class="field"><label>Password</label><input id="uPassword" type="password" placeholder="Leave blank to keep current"></div>
+    <div class="field"><label>Role</label>
+      <select id="uRole"><option value="cashier">Cashier</option><option value="admin">Admin</option></select>
+    </div>
+    <div class="modalActions">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="catModal">
+  <div class="modalBox">
+    <h3 id="catModalTitle">Add Category</h3>
+    <input type="hidden" id="cEditId">
+    <div class="field"><label>Category Name</label><input id="cName" placeholder="e.g. Rice, Drinks, Grills"></div>
+    <div class="modalActions">
+      <button class="btn btn-ghost" onclick="closeModal('catModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="menuModal">
+  <div class="modalBox">
+    <h3>Menu Item</h3>
+    <input type="hidden" id="mEditId">
+    <div class="field"><label>Item Name</label><input id="mName"></div>
+    <div class="field">
+      <label>Category (pick from list, or type to search)</label>
+      <input id="mCategory" list="catList" placeholder="Start typing...">
+      <datalist id="catList"></datalist>
+    </div>
+    <div class="field"><label>Price (GH₵)</label><input id="mPrice" type="number" step="0.01"></div>
+    <div class="field">
+      <label>Add-ons (optional — leave price at 0 for a free/no-charge add-on)</label>
+      <div id="addonRows"></div>
+      <button type="button" class="miniBtn" onclick="addAddonRow()">+ Add add-on</button>
+    </div>
+    <div class="modalActions">
+      <button class="btn btn-ghost" onclick="closeModal('menuModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMenuItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="addonPickModal">
+  <div class="modalBox">
+    <h3 id="addonPickTitle">Add-ons</h3>
+    <div id="addonPickList"></div>
+    <div class="modalActions">
+      <button class="btn btn-ghost" onclick="closeModal('addonPickModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddonPick()">Add to Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DEMO IN-MEMORY DATA — resets on refresh. The real desktop
+   build stores this in a local database instead of memory.
+============================================================ */
+function defaultState(){
+  return {
+    settings: { name: "Aunty Ama\'s Kitchen", logo: null, taxPct: 0 },
+    users: [
+      { id:1, name:"Restaurant Owner", username:"admin", password:"admin123", role:"admin" },
+      { id:2, name:"Front Counter", username:"cashier", password:"cash123", role:"cashier" }
+    ],
+    categories: [
+      { id:1, name:"Rice" }, { id:2, name:"Local Dishes" }, { id:3, name:"Grills" },
+      { id:4, name:"Sides" }, { id:5, name:"Drinks" }
+    ],
+    menu: [
+      { id:1, name:"Jollof Rice & Chicken", catId:1, price:35,
+        addons:[{id:1,name:"Extra Garri",price:5},{id:2,name:"Extra Meat",price:15},{id:3,name:"No Garri",price:0}] },
+      { id:2, name:"Banku & Tilapia", catId:2, price:45, addons:[{id:4,name:"Extra Pepper",price:0}] },
+      { id:3, name:"Fried Rice & Beef", catId:1, price:38, addons:[] },
+      { id:4, name:"Waakye Special", catId:2, price:30, addons:[{id:5,name:"Extra Egg",price:5},{id:6,name:"No Spaghetti",price:0}] },
+      { id:5, name:"Grilled Chicken", catId:3, price:40, addons:[] },
+      { id:6, name:"Kelewele", catId:4, price:15, addons:[] },
+      { id:7, name:"Bottled Water", catId:5, price:5, addons:[] },
+      { id:8, name:"Malt Drink", catId:5, price:10, addons:[] }
+    ]
+  };
+}
+let state = defaultState();
+let currentUser = null;
+let cart = [];
+let activeCat = "All";
+let pendingPickItem = null;
+let sales = [];
+
+/* ---------- PERSISTENCE (Electron main process writes this to disk) ----------
+   store.json (settings/users/categories/menu) is small and only rewritten
+   when something in it actually changes — safe. cart.json is tiny and
+   rewritten often for crash recovery. Sales and refunds are NEVER
+   rewritten — each new one is appended as its own line, so the log can
+   grow to tens of thousands of records a day without slowing anything
+   down, unlike a single JSON blob that gets rewritten whole each time. */
+async function persistStore(){
+  if(window.api) await window.api.storeSave(state);
+}
+async function persistCart(){
+  if(window.api) await window.api.cartSave(cart);
+}
+async function loadFromDisk(){
+  if(!window.api) return; // running as a plain browser demo, no persistence available
+  const loadedStore = await window.api.storeLoad();
+  if(loadedStore){ state = loadedStore; }
+  else { await persistStore(); } // first run — save the seeded defaults
+
+  const loadedCart = await window.api.cartLoad();
+  if(loadedCart) cart = loadedCart;
+
+  const rawSales = await window.api.salesLoadAll();
+  const rawRefunds = await window.api.refundsLoadAll();
+  sales = rawSales.map(s => ({
+    ...s, date: new Date(s.date), refunds: []
+  }));
+  const byId = {};
+  sales.forEach(s => byId[s.id] = s);
+  rawRefunds.forEach(r => {
+    const sale = byId[r.saleId];
+    if(sale) sale.refunds.push({ ...r, date: new Date(r.date) });
+  });
+}
+
+const $ = id => document.getElementById(id);
+const money = n => "GH₵" + n.toFixed(2);
+function catName(id){ const c = state.categories.find(c=>c.id===id); return c?c.name:"Uncategorised"; }
+function logoImgTag(size){
+  if(state.settings.logo) return `<img src="${state.settings.logo}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover">`;
+  const initial = (state.settings.name||"R").trim().charAt(0).toUpperCase();
+  return `<div class="ph" style="width:${size}px;height:${size}px;border-radius:50%">${initial}</div>`;
+}
+
+function renderBranding(){
+  $("loginLogoWrap").innerHTML = logoImgTag(64);
+  $("loginTitle").textContent = state.settings.name || "Restaurant POS";
+  $("topbarBrand").innerHTML = logoImgTag(32) + `<b>${state.settings.name||"Restaurant POS"}</b>`;
+  $("setName").value = state.settings.name||"";
+  $("setTax").value = state.settings.taxPct;
+  $("taxPctLabel").textContent = state.settings.taxPct;
+  $("taxRow").style.display = state.settings.taxPct>0 ? "flex" : "none";
+}
+
+function doLogin(){
+  const u = $("loginUser").value.trim();
+  const p = $("loginPass").value;
+  const found = state.users.find(x=>x.username===u && x.password===p);
+  if(!found){ $("loginErr").textContent = "Incorrect username or password."; return; }
+  currentUser = found;
+  currentUser.shiftStart = new Date();
+  $("loginErr").textContent = "";
+  $("loginUser").value=""; $("loginPass").value="";
+  $("loginScreen").style.display="none";
+  $("app").classList.add("show");
+  buildSidebar();
+  showView("pos");
+  renderAll();
+}
+function logout(){
+  currentUser = null; cart = [];
+  $("app").classList.remove("show");
+  $("loginScreen").style.display="flex";
+}
+function requestLogout(){
+  const mine = sales.filter(s=>s.cashier===currentUser.name && s.date>=currentUser.shiftStart);
+  const total = mine.reduce((s,x)=>s+netTotal(x),0);
+  $("shiftCashier").textContent = currentUser.name;
+  $("shiftStart").textContent = currentUser.shiftStart.toLocaleString();
+  $("shiftEnd").textContent = new Date().toLocaleString();
+  $("shiftOrders").textContent = mine.length;
+  $("shiftTotal").textContent = money(total);
+  $("shiftLines").innerHTML = mine.length ? mine.map((s,i)=>
+    `<div class="rRow"><span>Order ${i+1} — ${s.date.toLocaleTimeString()}</span><span>${money(netTotal(s))}${refundedAmount(s)>0?' <span style="color:var(--brick);font-size:11px">(refunded '+money(refundedAmount(s))+')</span>':''}</span></div>`).join("")
+    : `<p style="font-size:12px;color:var(--text-soft)">No sales recorded this shift.</p>`;
+  $("shiftModal").classList.add("show");
+}
+function saveShiftFile(){
+  const lines = [
+    `Shift Report — ${state.settings.name}`,
+    `Cashier: ${currentUser.name}`,
+    `Shift start: ${currentUser.shiftStart.toLocaleString()}`,
+    `Shift end: ${new Date().toLocaleString()}`,
+    `Orders: ${$("shiftOrders").textContent}`,
+    `Total sales: ${$("shiftTotal").textContent}`,
+    ""
+  ];
+  const content = lines.join("\n");
+  const defaultName = `shift-${currentUser.username}-${Date.now()}.txt`;
+  if(window.api){
+    window.api.saveShiftFile(defaultName, content);
+  } else {
+    const blob = new Blob([content], { type:"text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = defaultName;
+    a.click();
+  }
+}
+function confirmShiftLogout(){
+  closeModal("shiftModal");
+  logout();
+}
+
+function buildSidebar(){
+  const isAdmin = currentUser.role==="admin";
+  let items = [["pos","Point of Sale"],["orders","Orders & Refunds"]];
+  if(isAdmin) items.push(["dashboard","Sales Dashboard"],["categories","Categories"],["menu","Menu Items"],["users","Staff Accounts"],["settings","Branding & Settings"]);
+  items.push(["account","My Account"]);
+  $("sidebar").innerHTML = items.map(([id,label])=>
+    `<button data-v="${id}" onclick="showView('${id}')">${label}</button>`).join("");
+  $("whoName").textContent = currentUser.name;
+  $("whoRole").textContent = currentUser.role.toUpperCase();
+}
+function showView(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $("view-"+id).classList.add("active");
+  document.querySelectorAll("#sidebar button").forEach(b=>b.classList.toggle("active", b.dataset.v===id));
+  if(id==="account"){ $("accName").value = currentUser.name; $("accPass").value=""; }
+}
+
+function renderAll(){
+  renderBranding();
+  renderMenuGrid();
+  renderCatTable();
+  renderMenuTable();
+  renderUsersTable();
+  renderCart();
+  renderDashboard();
+  renderOrdersTable();
+}
+
+function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+let dashRange = 'week';
+function setDashRange(r){ dashRange = r; renderDashboard(); }
+function renderDashboard(){
+  if(!$("dashToday")) return;
+  $("rangeWeek").style.background = dashRange==='week' ? 'var(--ink)' : '#fff';
+  $("rangeWeek").style.color = dashRange==='week' ? '#fff' : 'var(--text)';
+  $("rangeYear").style.background = dashRange==='year' ? 'var(--ink)' : '#fff';
+  $("rangeYear").style.color = dashRange==='year' ? '#fff' : 'var(--text)';
+  const today = new Date();
+  const todaysSales = sales.filter(s=>sameDay(s.date, today));
+  const todayTotal = todaysSales.reduce((s,x)=>s+netTotal(x),0);
+  $("dashToday").textContent = money(todayTotal);
+  $("dashOrders").textContent = todaysSales.length;
+  $("dashAvg").textContent = money(todaysSales.length ? todayTotal/todaysSales.length : 0);
+  $("dashCash").textContent = money(todaysSales.filter(s=>s.paymentMethod==="Cash").reduce((s,x)=>s+netTotal(x),0));
+  $("dashMomo").textContent = money(todaysSales.filter(s=>s.paymentMethod==="MoMo").reduce((s,x)=>s+netTotal(x),0));
+  const refundsToday = todaysSales.reduce((s,x)=>s+(x.refunds||[]).length,0);
+  $("dashRefunds").textContent = refundsToday;
+
+  // All-time totals — every sale ever recorded, nothing is ever dropped
+  const allTimeTotal = sales.reduce((s,x)=>s+netTotal(x),0);
+  $("dashAllTime").textContent = money(allTimeTotal);
+  $("dashAllTimeOrders").textContent = `${sales.length} order(s) recorded since this install began`;
+
+  let bars;
+  if(dashRange==='week'){
+    $("dashChartTitle").textContent = "Last 7 Days";
+    bars = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date(today); d.setDate(d.getDate()-i);
+      const total = sales.filter(s=>sameDay(s.date,d)).reduce((s,x)=>s+netTotal(x),0);
+      bars.push({ label: i===0 ? "Today" : d.toLocaleDateString(undefined,{weekday:'short'}), total, current: i===0 });
+    }
+  } else {
+    $("dashChartTitle").textContent = "Last 12 Months";
+    bars = [];
+    for(let i=11;i>=0;i--){
+      const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+      const total = sales.filter(s=>s.date.getFullYear()===d.getFullYear() && s.date.getMonth()===d.getMonth())
+        .reduce((s,x)=>s+netTotal(x),0);
+      bars.push({ label: d.toLocaleDateString(undefined,{month:'short'}), total, current: i===0 });
+    }
+  }
+  const max = Math.max(...bars.map(d=>d.total), 1);
+  $("dashChart").innerHTML = bars.map(d=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+      <div style="font-size:10px;color:var(--text-soft);margin-bottom:4px">${money(d.total)}</div>
+      <div style="width:100%;background:${d.current?'var(--amber)':'var(--ink)'};opacity:${d.current?1:.55};
+        border-radius:3px 3px 0 0;height:${(d.total/max*130)||2}px"></div>
+      <div style="font-size:10px;color:var(--text-soft);margin-top:6px">${d.label}</div>
+    </div>`).join("");
+}
+
+/* ---------- CATEGORIES ---------- */
+function openCatModal(id){
+  $("cEditId").value = id||"";
+  $("catModalTitle").textContent = id ? "Edit Category" : "Add Category";
+  $("cName").value = id ? state.categories.find(c=>c.id===id).name : "";
+  $("catModal").classList.add("show");
+}
+function saveCategory(){
+  const name = $("cName").value.trim();
+  if(!name){ alert("Category name is required."); return; }
+  const id = $("cEditId").value;
+  const dupe = state.categories.find(c=>c.name.toLowerCase()===name.toLowerCase() && c.id!=id);
+  if(dupe){ alert("That category already exists."); return; }
+  if(id){ state.categories.find(c=>c.id==id).name = name; }
+  else { state.categories.push({ id: Date.now(), name }); }
+  closeModal("catModal");
+  renderCatTable(); renderMenuGrid();
+  persistStore();
+}
+function deleteCategory(id){
+  const inUse = state.menu.some(m=>m.catId===id);
+  if(inUse){ alert("This category is used by one or more menu items. Reassign or delete those items first."); return; }
+  if(!confirm("Delete this category?")) return;
+  state.categories = state.categories.filter(c=>c.id!==id);
+  renderCatTable();
+  persistStore();
+}
+function renderCatTable(){
+  const q = ($("catSearch")?.value||"").trim().toLowerCase();
+  const list = state.categories.filter(c=>!q||c.name.toLowerCase().includes(q));
+  $("catTable").innerHTML = list.map(c=>{
+    const count = state.menu.filter(m=>m.catId===c.id).length;
+    return `<tr><td>${c.name}</td><td>${count}</td>
+      <td><button class="miniBtn" onclick="openCatModal(${c.id})">Edit</button>
+          <button class="miniBtn danger" onclick="deleteCategory(${c.id})">Delete</button></td></tr>`;
+  }).join("") || `<tr><td colspan="3" style="color:var(--text-soft)">No categories match.</td></tr>`;
+}
+
+/* ---------- POS: MENU GRID ---------- */
+function renderMenuGrid(){
+  const cats = ["All", ...state.categories.map(c=>c.name)];
+  $("catFilter").innerHTML = cats.map(c=>
+    `<button class="${c===activeCat?'active':''}" onclick="setCat('${c}')">${c}</button>`).join("");
+  const q = ($("posSearch")?.value||"").trim().toLowerCase();
+  const items = state.menu.filter(m=>
+    (activeCat==="All"||catName(m.catId)===activeCat) &&
+    (!q || m.name.toLowerCase().includes(q)));
+  const CAP = 150; // a big catalog with no search/category picked would otherwise dump thousands of cards into the page at once
+  if(items.length > CAP && activeCat==="All" && !q){
+    $("menuList").innerHTML = `<p style="color:var(--text-soft);grid-column:1/-1">
+      ${state.menu.length} items on the menu — search above or pick a category to narrow the list.</p>`;
+    return;
+  }
+  $("menuList").innerHTML = items.slice(0, CAP).map(m=>
+    `<button class="itemCard" onclick="pickItem(${m.id})">
+        ${m.addons && m.addons.length ? '<span class="addonTag">add-ons</span>':''}
+        <b>${m.name}</b><span>${money(m.price)}</span>
+     </button>`).join("") || `<p style="color:var(--text-soft)">No items match.</p>`;
+}
+function setCat(c){ activeCat=c; renderMenuGrid(); }
+
+function pickItem(id){
+  const item = state.menu.find(m=>m.id===id);
+  if(!item.addons || !item.addons.length){ addToCart(item, []); return; }
+  pendingPickItem = item;
+  $("addonPickTitle").textContent = item.name + " — choose add-ons";
+  $("addonPickList").innerHTML = item.addons.map(a=>`
+    <div class="addonPick" data-aid="${a.id}" data-price="${a.price}">
+      <span>${a.name} <span style="color:var(--text-soft);font-size:11.5px">${a.price>0?('('+money(a.price)+' each)'):'(free)'}</span></span>
+      <span class="qtyBtns">
+        <button type="button" onclick="stepAddonQty(this,-1)">−</button>
+        <span class="aQty">0</span>
+        <button type="button" onclick="stepAddonQty(this,1)">+</button>
+      </span>
+    </div>`).join("");
+  $("addonPickModal").classList.add("show");
+}
+function stepAddonQty(btn, delta){
+  const row = btn.closest(".addonPick");
+  const span = row.querySelector(".aQty");
+  const next = Math.max(0, parseInt(span.textContent) + delta);
+  span.textContent = next;
+}
+function confirmAddonPick(){
+  const rows = [...$("addonPickList").querySelectorAll(".addonPick")];
+  const chosen = rows.map(row=>{
+    const qty = parseInt(row.querySelector(".aQty").textContent);
+    if(qty<=0) return null;
+    const a = pendingPickItem.addons.find(x=>String(x.id)===row.dataset.aid);
+    return { id:a.id, name:a.name, price:a.price, qty };
+  }).filter(Boolean);
+  addToCart(pendingPickItem, chosen);
+  closeModal("addonPickModal");
+}
+function addToCart(item, addons){
+  const key = item.id + "-" + addons.map(a=>a.id+":"+a.qty).sort().join(",");
+  const line = cart.find(c=>c.key===key);
+  if(line){ line.qty++; }
+  else {
+    const addonTotal = addons.reduce((s,a)=>s+a.price*a.qty,0);
+    cart.push({ key, id:item.id, name:item.name, base:item.price, addons, unit:item.price+addonTotal, qty:1 });
+  }
+  renderCart();
+}
+function changeQty(key, delta){
+  const line = cart.find(c=>c.key===key);
+  if(!line) return;
+  line.qty += delta;
+  if(line.qty<=0) cart = cart.filter(c=>c.key!==key);
+  renderCart();
+}
+function clearCart(){ cart=[]; renderCart(); }
+
+function renderCart(){
+  $("cartItems").innerHTML = cart.length ? cart.map(c=>`
+    <div class="cartRow">
+      <div class="lineMain">
+        <span>${c.name}</span>
+        ${c.addons.length ? `<span class="addonNote">${c.addons.map(a=>(a.qty>1?a.qty+"x ":"")+a.name).join(", ")}</span>` : ""}
+      </div>
+      <span class="qtyBtns"><button onclick="changeQty('${c.key}',-1)">−</button> ${c.qty} <button onclick="changeQty('${c.key}',1)">+</button></span>
+      <span>${money(c.unit*c.qty)}</span>
+    </div>`).join("") : `<p style="color:var(--text-soft);font-size:13px">No items added yet.</p>`;
+  const sub = cart.reduce((s,c)=>s+c.unit*c.qty,0);
+  const tax = sub * (state.settings.taxPct/100);
+  $("sumSub").textContent = money(sub);
+  $("sumTax").textContent = money(tax);
+  $("sumTotal").textContent = money(sub+tax);
+  persistCart(); // keeps the open order safe on disk in case of a crash or power cut
+}
+let selectedPayMethod = null;
+function setPayMethod(m){
+  selectedPayMethod = m;
+  $("payCash").style.background = m==="Cash" ? "var(--ink)" : "#fff";
+  $("payCash").style.color = m==="Cash" ? "#fff" : "var(--text)";
+  $("payMomo").style.background = m==="MoMo" ? "var(--ink)" : "#fff";
+  $("payMomo").style.color = m==="MoMo" ? "#fff" : "var(--text)";
+}
+
+/* ---------- CHECKOUT / RECEIPT ---------- */
+function checkout(){
+  if(!cart.length){ alert("Add at least one item before charging."); return; }
+  if(!selectedPayMethod){ alert("Choose a payment method — Cash or Mobile Money — before charging."); return; }
+  const sub = cart.reduce((s,c)=>s+c.unit*c.qty,0);
+  const tax = sub*(state.settings.taxPct/100);
+  $("receiptLogoWrap").innerHTML = logoImgTag(44);
+  $("rName").textContent = state.settings.name;
+  $("receiptLines").innerHTML = cart.map(c=>{
+    let rows = `<div class="rRow"><span>${c.qty} x ${c.name}</span><span>${money(c.base*c.qty)}</span></div>`;
+    rows += c.addons.map(a=>
+      `<div class="rRow rSub"><span>+ ${a.qty>1?a.qty+"x ":""}${a.name}</span><span>${a.price>0?money(a.price*a.qty):'Free'}</span></div>`
+    ).join("");
+    if(c.addons.length){
+      rows += `<div class="rRow" style="font-weight:bold"><span>${c.name} — item total</span><span>${money(c.unit*c.qty)}</span></div>`;
+    }
+    return `<div style="margin-bottom:6px">${rows}</div>`;
+  }).join("");
+  $("rSub").textContent = money(sub);
+  $("rTaxRow").style.display = state.settings.taxPct>0 ? "flex":"none";
+  $("rTax").textContent = money(tax);
+  $("rTotal").textContent = money(sub+tax);
+  $("rCashier").textContent = currentUser.name;
+  $("rDate").textContent = new Date().toLocaleString();
+  $("rPayMethod").textContent = selectedPayMethod;
+  $("receiptOverlay").classList.add("show");
+  const newSale = {
+    id: Date.now()+"-"+Math.floor(Math.random()*1000),
+    date: new Date(),
+    cashier: currentUser.name,
+    paymentMethod: selectedPayMethod,
+    lines: cart.map(c=>({
+      name: c.name, unit: c.base, qty: c.qty,
+      addons: c.addons.map(a=>({ name:a.name, price:a.price, qty:a.qty }))
+    })),
+    subtotal: sub, tax, total: sub+tax
+  };
+  sales.push({ ...newSale, refunds: [] });
+  if(window.api) window.api.salesAppend(newSale); // appended, never rewrites the whole log
+  renderDashboard();
+  renderOrdersTable();
+  cart = []; selectedPayMethod = null; setPayMethod(null); persistCart();
+}
+function closeReceipt(){ $("receiptOverlay").classList.remove("show"); clearCart(); }
+
+/* ---------- ORDERS / REFUNDS ---------- */
+function refundedAmount(order){
+  return (order.refunds||[]).reduce((s,r)=>s+r.amount,0);
+}
+function netTotal(order){ return order.total - refundedAmount(order); }
+function refundedQty(order, lineIndex, target, addonIndex){
+  return (order.refunds||[]).filter(r=>
+    r.lineIndex===lineIndex && r.target===target && (target!=='addon' || r.addonIndex===addonIndex)
+  ).reduce((s,r)=>s+r.qty,0);
+}
+function renderOrdersTable(){
+  if(!$("ordersTable")) return;
+  const list = [...sales].sort((a,b)=>b.date-a.date).slice(0,100);
+  $("ordersTable").innerHTML = list.map(o=>{
+    const refunded = refundedAmount(o);
+    return `<tr>
+      <td>${o.date.toLocaleString()}</td>
+      <td>${o.cashier}</td>
+      <td>${o.paymentMethod||"—"}</td>
+      <td>${o.lines.reduce((s,l)=>s+l.qty,0)} item(s)</td>
+      <td>${money(o.total)}</td>
+      <td>${refunded>0 ? '<span style="color:var(--brick)">−'+money(refunded)+'</span>' : '—'}</td>
+      <td>${money(netTotal(o))}</td>
+      <td><button class="miniBtn" onclick="openRefundModal('${o.id}')">Refund</button></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="8" style="color:var(--text-soft)">No orders yet.</td></tr>`;
+}
+let refundOrderId = null;
+function openRefundModal(orderId){
+  refundOrderId = orderId;
+  const o = sales.find(s=>s.id===orderId);
+  $("refundOrderInfo").textContent = `Order from ${o.date.toLocaleString()} — served by ${o.cashier} (${o.paymentMethod||"—"})`;
+  $("refundReason").value = "";
+  $("refundLines").innerHTML = o.lines.map((l,i)=>{
+    const itemRemaining = l.qty - refundedQty(o,i,'item');
+    let html = `<div class="addonPick" data-line="${i}" data-target="item" data-addon="" data-unit="${l.unit}" data-remaining="${itemRemaining}">
+      <span>${l.name}<br><span style="font-size:11px;color:var(--text-soft)">${itemRemaining} of ${l.qty} refundable — ${money(l.unit)} each</span></span>
+      <span class="qtyBtns">
+        <button type="button" onclick="stepRefundQty(this,-1)" ${itemRemaining<=0?'disabled':''}>−</button>
+        <span class="rfQty">0</span>
+        <button type="button" onclick="stepRefundQty(this,1)" ${itemRemaining<=0?'disabled':''}>+</button>
+      </span>
+    </div>`;
+    html += (l.addons||[]).map((a,j)=>{
+      const remaining = a.qty - refundedQty(o,i,'addon',j);
+      return `<div class="addonPick" data-line="${i}" data-target="addon" data-addon="${j}" data-unit="${a.price}" data-remaining="${remaining}" style="padding-left:18px">
+        <span>↳ ${a.name}<br><span style="font-size:11px;color:var(--text-soft)">${remaining} of ${a.qty} refundable — ${a.price>0?money(a.price)+' each':'free — refund tracked for records only'}</span></span>
+        <span class="qtyBtns">
+          <button type="button" onclick="stepRefundQty(this,-1)" ${remaining<=0?'disabled':''}>−</button>
+          <span class="rfQty">0</span>
+          <button type="button" onclick="stepRefundQty(this,1)" ${remaining<=0?'disabled':''}>+</button>
+        </span>
+      </div>`;
+    }).join("");
+    return html;
+  }).join("");
+  updateRefundPreview();
+  $("refundModal").classList.add("show");
+}
+function stepRefundQty(btn, delta){
+  const row = btn.closest(".addonPick");
+  const span = row.querySelector(".rfQty");
+  const max = parseInt(row.dataset.remaining);
+  const next = Math.min(max, Math.max(0, parseInt(span.textContent)+delta));
+  span.textContent = next;
+  updateRefundPreview();
+}
+function updateRefundPreview(){
+  const rows = [...$("refundLines").querySelectorAll(".addonPick")];
+  const total = rows.reduce((s,row)=>{
+    const qty = parseInt(row.querySelector(".rfQty").textContent);
+    return s + qty*parseFloat(row.dataset.unit);
+  },0);
+  $("refundPreviewTotal").textContent = money(total);
+}
+function confirmRefund(){
+  const o = sales.find(s=>s.id===refundOrderId);
+  const reason = $("refundReason").value.trim();
+  if(!reason){ alert("Add a short reason for the refund (e.g. item out of stock)."); return; }
+  const rows = [...$("refundLines").querySelectorAll(".addonPick")];
+  let any = false;
+  rows.forEach(row=>{
+    const qty = parseInt(row.querySelector(".rfQty").textContent);
+    if(qty>0){
+      any = true;
+      const refund = {
+        saleId: o.id,
+        lineIndex: parseInt(row.dataset.line),
+        target: row.dataset.target,
+        addonIndex: row.dataset.addon!=="" ? parseInt(row.dataset.addon) : null,
+        qty, amount: qty*parseFloat(row.dataset.unit),
+        date: new Date(), staff: currentUser.name, reason
+      };
+      o.refunds.push(refund);
+      if(window.api) window.api.refundsAppend(refund); // appended, never rewrites the whole log
+    }
+  });
+  if(!any){ alert("Set a quantity to refund on at least one item."); return; }
+  closeModal("refundModal");
+  renderOrdersTable();
+  renderDashboard();
+}
+
+/* ---------- MENU CRUD ---------- */
+let addonRowSeq = 0;
+function addAddonRow(name, price){
+  addonRowSeq++;
+  const div = document.createElement("div");
+  div.className = "addonRow"; div.dataset.rid = addonRowSeq;
+  div.innerHTML = `<input type="text" placeholder="Add-on name" value="${name||''}">
+    <input type="number" step="0.01" placeholder="0 = free" value="${price||0}">
+    <button type="button" onclick="this.parentElement.remove()">✕</button>`;
+  $("addonRows").appendChild(div);
+}
+function openMenuModal(id){
+  $("catList").innerHTML = state.categories.map(c=>`<option value="${c.name}">`).join("");
+  $("addonRows").innerHTML = "";
+  $("mEditId").value = id||"";
+  if(id){
+    const m = state.menu.find(x=>x.id===id);
+    $("mName").value=m.name; $("mCategory").value=catName(m.catId); $("mPrice").value=m.price;
+    (m.addons||[]).forEach(a=>addAddonRow(a.name, a.price));
+  } else { $("mName").value=""; $("mCategory").value=""; $("mPrice").value=""; }
+  $("menuModal").classList.add("show");
+}
+function saveMenuItem(){
+  const id = $("mEditId").value;
+  const name = $("mName").value.trim();
+  const catInput = $("mCategory").value.trim();
+  const cat = state.categories.find(c=>c.name.toLowerCase()===catInput.toLowerCase());
+  if(!name){ alert("Item name is required."); return; }
+  if(!cat){ alert("Pick an existing category (or create it first under Categories)."); return; }
+  const addons = [...$("addonRows").children].map(row=>{
+    const [nameInput, priceInput] = row.querySelectorAll("input");
+    return { id: Date.now()+Math.random(), name: nameInput.value.trim(), price: parseFloat(priceInput.value)||0 };
+  }).filter(a=>a.name);
+  const data = { name, catId: cat.id, price: parseFloat($("mPrice").value)||0, addons };
+  if(id){ Object.assign(state.menu.find(m=>m.id==id), data); }
+  else { state.menu.push({ id: Date.now(), ...data }); }
+  closeModal("menuModal");
+  renderMenuGrid(); renderMenuTable();
+  persistStore();
+}
+function deleteMenuItem(id){
+  if(!confirm("Remove this item from the menu?")) return;
+  state.menu = state.menu.filter(m=>m.id!==id);
+  renderMenuGrid(); renderMenuTable();
+  persistStore();
+}
+function renderMenuTable(){
+  const q = ($("menuSearch")?.value||"").trim().toLowerCase();
+  const list = state.menu.filter(m=>!q||m.name.toLowerCase().includes(q));
+  const CAP = 200;
+  const shown = list.slice(0, CAP);
+  $("menuTable").innerHTML = shown.map(m=>`
+    <tr><td>${m.name}</td><td>${catName(m.catId)}</td><td>${money(m.price)}</td>
+      <td>${m.addons && m.addons.length ? m.addons.length+" add-on(s)" : "—"}</td>
+      <td><button class="miniBtn" onclick="openMenuModal(${m.id})">Edit</button>
+          <button class="miniBtn danger" onclick="deleteMenuItem(${m.id})">Delete</button></td></tr>`).join("")
+    || `<tr><td colspan="5" style="color:var(--text-soft)">No items match.</td></tr>`;
+  if(list.length > CAP){
+    $("menuTable").innerHTML += `<tr><td colspan="5" style="color:var(--text-soft)">
+      Showing first ${CAP} of ${list.length} matching items — search to narrow further.</td></tr>`;
+  }
+}
+
+/* ---------- USER CRUD ---------- */
+function openUserModal(id){
+  $("userEditId").value = id||"";
+  $("userModalTitle").textContent = id ? "Edit Account" : "Create Account";
+  if(id){
+    const u = state.users.find(x=>x.id===id);
+    $("uName").value=u.name; $("uUsername").value=u.username; $("uPassword").value=""; $("uRole").value=u.role;
+  } else { $("uName").value=""; $("uUsername").value=""; $("uPassword").value=""; $("uRole").value="cashier"; }
+  $("userModal").classList.add("show");
+}
+function saveUser(){
+  const id = $("userEditId").value;
+  const username = $("uUsername").value.trim();
+  if(!$("uName").value.trim() || !username){ alert("Name and username are required."); return; }
+  const dupe = state.users.find(u=>u.username===username && u.id!=id);
+  if(dupe){ alert("That username is already taken."); return; }
+  if(id){
+    const u = state.users.find(x=>x.id==id);
+    u.name=$("uName").value.trim(); u.username=username; u.role=$("uRole").value;
+    if($("uPassword").value) u.password=$("uPassword").value;
+  } else {
+    if(!$("uPassword").value){ alert("Set a password for the new account."); return; }
+    state.users.push({ id: Date.now(), name:$("uName").value.trim(), username, password:$("uPassword").value, role:$("uRole").value });
+  }
+  closeModal("userModal");
+  renderUsersTable();
+  persistStore();
+}
+function deleteUser(id){
+  if(id===currentUser.id){ alert("You can't delete the account you're logged in as."); return; }
+  if(!confirm("Remove this staff account?")) return;
+  state.users = state.users.filter(u=>u.id!==id);
+  renderUsersTable();
+  persistStore();
+}
+function renderUsersTable(){
+  $("usersTable").innerHTML = state.users.map(u=>`
+    <tr><td>${u.name}</td><td>${u.username}</td>
+      <td><span class="pill ${u.role}">${u.role}</span></td>
+      <td><button class="miniBtn" onclick="openUserModal(${u.id})">Edit</button>
+          <button class="miniBtn danger" onclick="deleteUser(${u.id})">Delete</button></td></tr>`).join("");
+}
+
+/* ---------- SETTINGS ---------- */
+function saveSettings(){
+  state.settings.name = $("setName").value.trim() || "Restaurant POS";
+  state.settings.taxPct = parseFloat($("setTax").value)||0;
+  const file = $("setLogoFile").files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = e => { state.settings.logo = e.target.result; renderBranding(); };
+    reader.readAsDataURL(file);
+  } else { renderBranding(); persistStore(); }
+  alert("Settings saved.");
+}
+
+/* ---------- MY ACCOUNT ---------- */
+function saveMyAccount(){
+  currentUser.name = $("accName").value.trim() || currentUser.name;
+  if($("accPass").value) currentUser.password = $("accPass").value;
+  $("whoName").textContent = currentUser.name;
+  persistStore();
+  alert("Account updated.");
+}
+
+function closeModal(id){ $(id).classList.remove("show"); }
+
+(async function init(){
+  await loadFromDisk();
+  renderBranding();
+})();
+</script>
+</body>
+</html>
